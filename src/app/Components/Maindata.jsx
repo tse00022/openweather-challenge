@@ -43,84 +43,80 @@ export default function Maindata({ baseURL, city = "Ottawa", setBackgroundImageU
   const weatherIcon = (iconCode) => `/icons/${iconCode}.svg`;
 
   return (
-    <div className={styles.mainpage} style={{ backgroundImage: `url("./pics/01d.jpg")`, backgroundSize: "cover" }}>
-      <div className={styles.start}>
-        <div className={styles.newpage}>
-          <div className={styles.city}>
-            <div className={styles.daily}>Daily Forecast</div>
-            <div className={styles.dailydata}>
-              <span className={styles.name}>{data.city.name}</span>
+    <div className={styles.mainPage} style={{ backgroundImage: `url("./pics/01d.jpg")`, backgroundSize: "cover" }}>
+      <div className={styles.container}>
+        <div className={styles.cityData}>
+          <div className={styles.sectionTitle}>Daily Forecast</div>
+          <span className={styles.cityName}>{data.city.name}</span>
+          <br />
+          <span className={styles.cityDate}>{formatDate(data.list[0].dt, data.city.timezone)}</span>
+        </div>
+
+        <div className={styles.mainDataContainer}>
+          {!cityValid && <span>City "{city}" not found</span>}
+          <div className={styles.temperatureContainer}>
+            <img src={weatherIcon(data.list[0].weather[0].icon)} alt="weather icon" />
+            <div>
+              <span className={styles.temperatureDisplay}>{data.list[0].main.temp.toFixed(1)}°</span>
               <br />
-              <span className={styles.citydate}>{formatDate(data.list[0].dt, data.city.timezone)}</span>
+              <span className={styles.temperatureDescription}>{data.list[0].weather[0].description}</span>
             </div>
           </div>
 
-          <div className={styles.maindata}>
-            {!cityValid && <span>City "{city}" not found</span>}
-            <div className={styles.temper}>
-              <img src={weatherIcon(data.list[0].weather[0].icon)} alt="weather icon" />
-              <div className={styles.temp}>
-                <span className={styles.display}>{data.list[0].main.temp.toFixed(1)}°</span>
-                <br />
-                <span className={styles.display1}>{data.list[0].weather[0].description}</span>
-              </div>
+          <div className={styles.iconContainer}>
+            <div className={styles.iconItem}>
+              <span className={styles.iconValue}>{data.list[0].main.temp_max.toFixed(1)}</span>
+              <br />
+              <span className={styles.iconLabel}>High</span>
             </div>
-
-            <div className={styles.icon}>
-              <div className={styles.acloudy}>
-                <span className={styles.icon1}>{data.list[0].main.temp_max.toFixed(1)}</span>
-                <br />
-                <span className={styles.icon2}>High</span>
-              </div>
-              <div className={styles.bcloudy}>
-                <span className={styles.icon1}>{data.list[0].wind.speed.toFixed()} km/h</span>
-                <br />
-                <span className={styles.icon2}>Wind Speed</span>
-              </div>
-              <div className={styles.ccloudy}>
-                <span className={styles.icon1}>{formatTime(data.city.sunrise, data.city.timezone)}</span>
-                <br />
-                <span className={styles.icon2}>Sunrise</span>
-              </div>
-              <div className={styles.dcloudy}>
-                <span className={styles.icon1}>{data.list[0].main.temp_min.toFixed(1)}</span>
-                <br />
-                <span className={styles.icon2}>Low</span>
-              </div>
-              <div className={styles.ecloudy}>
-                <span className={styles.icon1}>{data.list[0].main.humidity}%</span>
-                <br />
-                <span className={styles.icon2}>Humidity</span>
-              </div>
-              <div className={styles.fcloudy}>
-                <span className={styles.icon1}>{formatTime(data.city.sunset, data.city.timezone)}</span>
-                <br />
-                <span className={styles.icon2}>Sunset</span>
-              </div>
+            <div className={styles.iconItem}>
+              <span className={styles.iconValue}>{data.list[0].wind.speed.toFixed()} km/h</span>
+              <br />
+              <span className={styles.iconLabel}>Wind Speed</span>
+            </div>
+            <div className={styles.iconItem}>
+              <span className={styles.iconValue}>{formatTime(data.city.sunrise, data.city.timezone)}</span>
+              <br />
+              <span className={styles.iconLabel}>Sunrise</span>
+            </div>
+            <div className={styles.iconItem}>
+              <span className={styles.iconValue}>{data.list[0].main.temp_min.toFixed(1)}</span>
+              <br />
+              <span className={styles.iconLabel}>Low</span>
+            </div>
+            <div className={styles.iconItem}>
+              <span className={styles.iconValue}>{data.list[0].main.humidity}%</span>
+              <br />
+              <span className={styles.iconLabel}>Humidity</span>
+            </div>
+            <div className={styles.iconItem}>
+              <span className={styles.iconValue}>{formatTime(data.city.sunset, data.city.timezone)}</span>
+              <br />
+              <span className={styles.iconLabel}>Sunset</span>
             </div>
           </div>
+        </div>
 
-          <div className={styles.daily}>Five Days Forecast</div>
-          <div className={styles.dailyweather}>
-            {data.list.slice(7, 40).filter((_, index) => index % 8 === 0).map((item, index) => (
-              <div key={index} className={styles.day}>
-                <span className={styles.wday}>{moment(new Date().setTime(item.dt * 1000)).format("ddd")}</span>
-                <br />
-                <img src={weatherIcon(item.weather[0].icon)} alt="weather icon" />
-                <br />
-                <span className={styles.head}>Temp</span>
-                <span className={styles.val}>{item.main.temp.toFixed(1)} C°</span>
-                <br />
-                <span className={styles.head}>Feel like</span>
-                <span className={styles.val}>{item.main.feels_like.toFixed(1)} C°</span>
-                <br />
-                <span className={styles.head}>Moist</span>
-                <span className={styles.val}>{item.main.humidity.toFixed()}%</span>
-                <br />
-                <span className={styles.head}>{item.weather[0].main}</span>
-              </div>
-            ))}
-          </div>
+        <div className={styles.sectionTitle}>Five Days Forecast</div>
+        <div className={styles.dailyWeatherContainer}>
+          {data.list.slice(7, 40).filter((_, index) => index % 8 === 0).map((item, index) => (
+            <div key={index} className={styles.dayContainer}>
+              <span className={styles.dayName}>{moment(new Date().setTime(item.dt * 1000)).format("ddd")}</span>
+              <br />
+              <img src={weatherIcon(item.weather[0].icon)} alt="weather icon" />
+              <br />
+              <span className={styles.dayDataLabel}>Temp</span>
+              <span className={styles.dayDataValue}>{item.main.temp.toFixed(1)} C°</span>
+              <br />
+              <span className={styles.dayDataLabel}>Feel like</span>
+              <span className={styles.dayDataValue}>{item.main.feels_like.toFixed(1)} C°</span>
+              <br />
+              <span className={styles.dayDataLabel}>Moist</span>
+              <span className={styles.dayDataValue}>{item.main.humidity.toFixed()}%</span>
+              <br />
+              <span className={styles.dayDataLabel}>{item.weather[0].main}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>

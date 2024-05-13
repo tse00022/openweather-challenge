@@ -1,24 +1,10 @@
 /* General Styles */
 .mainPage {
-  height: 100%;
   background-image: url("/pics/09n.jpg");
   background-size: cover;
-  backdrop-filter: blur(2.5rem);
 }
 
 /* Media Queries */
-@media screen and (max-width: 48rem) {
-  .mainPage {
-    height: auto !important;
-  }
-}
-
-@media screen and (max-width: 66.8125rem) {
-  .mainPage {
-    height: auto !important;
-  }
-}
-
 @media screen and (max-width: 1210px) {
   .temperatureDisplay {
     margin-left: 0 !important;
@@ -42,9 +28,6 @@
 }
 
 @media screen and (max-width: 768px) {
-  .cityData {
-    padding: 2rem 0 0 1.5rem !important;
-  }
   .sectionTitle {
     padding-left: 10px !important;
     font-size: 1.5rem !important;
@@ -128,10 +111,6 @@
   font-family: sans-serif;
 }
 
-/* City Data */
-.cityData {
-  padding: 2rem 0 0 3rem;
-}
 .cityName {
   font-size: 3rem;
   font-weight: 700;

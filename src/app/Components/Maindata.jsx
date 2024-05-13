@@ -47,9 +47,10 @@ export default function Maindata({ baseURL, city = "Ottawa", setBackgroundImageU
       <div className={styles.container}>
         <div className={styles.cityData}>
           <div className={styles.sectionTitle}>Daily Forecast</div>
-          <span className={styles.cityName}>{data.city.name}</span>
-          <br />
-          <span className={styles.cityDate}>{formatDate(data.list[0].dt, data.city.timezone)}</span>
+          <div className="p-4">
+            <div className={styles.cityName}>{data.city.name}</div>
+            <span className={styles.cityDate}>{formatDate(data.list[0].dt, data.city.timezone)}</span>
+          </div>
         </div>
 
         <div className={styles.mainDataContainer}>

@@ -56,9 +56,8 @@ export default function Maindata({ baseURL, city = "Ottawa", setBackgroundImageU
           {!cityValid && <span>City "{city}" not found</span>}
           <div className={styles.temperatureContainer}>
             <img src={weatherIcon(data.list[0].weather[0].icon)} alt="weather icon" />
-            <div>
+            <div class="flex flex-col justify-center">
               <span className={styles.temperatureDisplay}>{data.list[0].main.temp.toFixed(1)}°</span>
-              <br />
               <span className={styles.temperatureDescription}>{data.list[0].weather[0].description}</span>
             </div>
           </div>

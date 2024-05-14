@@ -16,6 +16,7 @@ export default function Dashboard({ baseURL }) {
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
   const [text, setText] = useState("");
+  let prevPartialResult = "";
 
   const fetchWeatherData = async () => {
     const url = `${baseURL}/api/weather?lat=${latitude}&lon=${longitude}`;
@@ -63,14 +64,11 @@ export default function Dashboard({ baseURL }) {
     const setupVoiceRecognition = async () => {
       const model = await createModel("/models/vosk-model-small-en-us-0.15.tar.gz");
       const recognizer = new model.KaldiRecognizer(16000);
-      recognizer.on("result", (message) => {
-        console.log(`Result: ${message.result.text}`);
-        handleVoiceCommand(message.result.text);
-      });
       recognizer.on("partialresult", (message) => {
-        if (message.result.partial){
-          console.log(`Partial result: ${message.result.partial}`);
+        if (message.result.partial != prevPartialResult){
+          prevPartialResult = message.result.partial;
           setText(message.result.partial);
+          matchVoiceCommand(message.result.partial);
         }
       });
       setRecognizer(recognizer);
@@ -87,15 +85,44 @@ export default function Dashboard({ baseURL }) {
     }
   }, [recognizer]);
 
-  const handleVoiceCommand = (command) => {
-    const keywords = ["open weather"];
-    const options = {
-      scorer: fuzz.partial_ratio,
-      processor: (choice) => choice.toLowerCase()
+  const matchVoiceCommand = (voice) => {
+    if (!voice) {
+      return;
+    }
+  
+    const commands = ["open weather"];
+    const threshold = 70; // Adjust the threshold as needed
+  
+    const calculateSimilarity = (voiceWords, commandWords) => {
+      let totalSimilarity = 0;
+      commandWords.forEach(commandWord => {
+        let maxSimilarity = 0;
+        voiceWords.forEach(voiceWord => {
+          const similarity = fuzz.ratio(voiceWord, commandWord);
+          if (similarity > maxSimilarity) {
+            maxSimilarity = similarity;
+          }
+        });
+        totalSimilarity += maxSimilarity;
+      });
+      return totalSimilarity / commandWords.length;
     };
-    const bestMatch = fuzz.extract(command, keywords, options)[0];
-    if (bestMatch && bestMatch[1] > 50) { // Adjust the threshold as needed
-      console.log("Matched command:", bestMatch[0]);
+  
+    const voiceWords = voice.toLowerCase().split(' ');
+    let bestMatch = null;
+    let bestScore = 0;
+  
+    commands.forEach(command => {
+      const commandWords = command.toLowerCase().split(' ');
+      const score = calculateSimilarity(voiceWords, commandWords);
+      if (score > bestScore) {
+        bestScore = score;
+        bestMatch = command;
+      }
+    });
+  
+    if (bestMatch && bestScore > threshold) {
+      console.log("Matched command:", bestMatch, "with score:", bestScore, "for command:", voice);
       // Execute the command
     } else {
       console.log("No matching command found.");
@@ -109,8 +136,6 @@ export default function Dashboard({ baseURL }) {
   const formatTime = (timestamp, timezone) => {
     return moment.utc(timestamp, "X").add(timezone, "seconds").format("h:mm a");
   };
-
-  const weatherIcon = (iconCode) => `/icons/${iconCode}.svg`;
 
   return (
     <div>
@@ -128,7 +153,7 @@ export default function Dashboard({ baseURL }) {
           <div className="border-b-2 pb-8 flex flex-wrap">
             {!cityValid && <span>City {city} not found</span>}
             <div className="flex h-[8rem] w-1/2 flex-row sm:border-r-2">
-              <img src={weatherIcon(data.list[0].weather[0].icon)} alt="weather icon" className="w-1/2" />
+              <img src={`/icons/${data.list[0].weather[0].icon}.svg`} alt="weather icon" className="w-1/2" />
               <div className="flex flex-col justify-center ml-5 md:ml-10">
                 <span className="text-4xl font-bold">{data.list[0].main.temp.toFixed(1)}°</span>
                 <span className="text-sm font-bold text-lightgray">{data.list[0].weather[0].description}</span>
@@ -167,7 +192,7 @@ export default function Dashboard({ baseURL }) {
               <div key={index} className="day-forecast pb-4 flex flex-col grow h-full text-center pt-8 border border-white-300">
                 <div className="flex flex-col grow h-full">
                   <span className="text-xl font-bold">{moment(new Date().setTime(item.dt * 1000)).format("ddd")}</span>
-                  <div className="flex justify-center"><img src={weatherIcon(item.weather[0].icon)} alt="weather icon" className="w-20" /></div>
+                  <div className="flex justify-center"><img src={`/icons/${item.weather[0].icon}.svg`} alt="weather icon" className="w-20" /></div>
                   <div className="pt-2 font-bold text-lg">{item.weather[0].main}</div>
                   <div className="pt-2 font-bold text-lg">Temp <span className="text-base text-lightgray">{item.main.temp.toFixed(1)} C°</span></div>
                   <div className="pt-2 font-bold text-lg">Feel <span className="text-base text-lightgray">{item.main.feels_like.toFixed(1)} C°</span></div>

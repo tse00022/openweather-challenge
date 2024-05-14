@@ -7,7 +7,7 @@ const nextConfig = {
         source: "/api/:path*",
         headers: [
           { key: "Access-Control-Allow-Credentials", value: "true" },
-          { key: "Access-Control-Allow-Origin", value: "http://localhost:3000, http://192.168.192.126:3000", "https://hello-world-mauve-three.vercel.app" },
+          { key: "Access-Control-Allow-Origin", value: "http://localhost:3000, http://192.168.192.126:3000, https://hello-world-mauve-three.vercel.app" },
           {
             key: "Access-Control-Allow-Methods",
             value: "GET,DELETE,PATCH,POST,PUT",

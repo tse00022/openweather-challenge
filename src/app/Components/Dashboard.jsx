@@ -4,6 +4,7 @@ import moment from "moment";
 import LoadingPrompt from "./LoadingPrompt";
 import MicrophonePrompt from "./MicrophonePrompt";
 import { createModel, KaldiRecognizer } from "vosk-browser";
+import * as fuzz from 'fuzzball';
 
 export default function Dashboard({ baseURL }) {
   const [data, setData] = useState(null);
@@ -33,7 +34,6 @@ export default function Dashboard({ baseURL }) {
   };
 
   useEffect(() => {
-
     const checkMicrophonePermission = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -64,6 +64,7 @@ export default function Dashboard({ baseURL }) {
       const recognizer = new model.KaldiRecognizer(16000);
       recognizer.on("result", (message) => {
         console.log(`Result: ${message.result.text}`);
+        handleVoiceCommand(message.result.text);
       });
       recognizer.on("partialresult", (message) => {
         if (message.result.partial){
@@ -91,9 +92,9 @@ export default function Dashboard({ baseURL }) {
             sampleRate: 16000
           },
         });
-    
+
         const audioContext = new AudioContext();
-    
+
         // Define the AudioWorkletProcessor as a string
         const processorCode = `
           class RecognizerProcessor extends AudioWorkletProcessor {
@@ -112,14 +113,14 @@ export default function Dashboard({ baseURL }) {
           }
           registerProcessor('recognizer-processor', RecognizerProcessor);
         `;
-    
+
         // Create a Blob URL from the processor code
         const blob = new Blob([processorCode], { type: 'application/javascript' });
         const url = URL.createObjectURL(blob);
-    
+
         // Add the module to the AudioWorklet
         await audioContext.audioWorklet.addModule(url);
-    
+
         const recognizerNode = new AudioWorkletNode(audioContext, 'recognizer-processor');
         recognizerNode.port.onmessage = (event) => {
           try {
@@ -130,7 +131,7 @@ export default function Dashboard({ baseURL }) {
             console.error('acceptWaveform failed', error);
           }
         };
-    
+
         const source = audioContext.createMediaStreamSource(mediaStream);
         source.connect(recognizerNode);
       }
@@ -140,6 +141,21 @@ export default function Dashboard({ baseURL }) {
       startVoiceRecognition();
     }
   }, [recognizer]);
+
+  const handleVoiceCommand = (command) => {
+    const keywords = ["open weather"];
+    const options = {
+      scorer: fuzz.partial_ratio,
+      processor: (choice) => choice.toLowerCase()
+    };
+    const bestMatch = fuzz.extract(command, keywords, options)[0];
+    if (bestMatch && bestMatch[1] > 50) { // Adjust the threshold as needed
+      console.log("Matched command:", bestMatch[0]);
+      // Execute the command
+    } else {
+      console.log("No matching command found.");
+    }
+  };
 
   const formatDate = (timestamp, timezone) => {
     return moment.utc(new Date().setTime(timestamp * 1000)).add(timezone, "seconds").format("dddd, MMMM Do YYYY");

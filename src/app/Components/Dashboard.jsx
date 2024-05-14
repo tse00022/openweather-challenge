@@ -3,12 +3,15 @@ import React, { useState, useEffect } from "react";
 import moment from "moment";
 import LocationPrompt from './LocationPrompt';
 import LoadingPrompt from "./LoadingPrompt";
+import MicPrompt from "./MicPrompt";
+import SpeechRecognitionComponent from './SpeechRecognition';
 
-export default function Dashboard({ baseURL}) {
+export default function Dashboard({ baseURL }) {
   const [data, setData] = useState(null);
   const [cityValid, setCityValid] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState(`url("./pics/01d.jpg")`);
   const [locationEnabled, setLocationEnabled] = useState(false);
+  const [micEnabled, setMicEnabled] = useState(false);
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
 
@@ -36,7 +39,6 @@ export default function Dashboard({ baseURL}) {
         console.log('Location permission state:', state, state === 'granted');
         setLocationEnabled(state === 'granted');
         if (state === 'granted') {
-          // get location and fetch weather data
           navigator.geolocation.getCurrentPosition(async (position) => {
             setLatitude(position.coords.latitude);
             setLongitude(position.coords.longitude);
@@ -47,9 +49,22 @@ export default function Dashboard({ baseURL}) {
       }
     };
 
+    const checkMicPermission = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        if (stream) {
+          setMicEnabled(true);
+        }
+      } catch (error) {
+        console.error('Error checking microphone permission:', error);
+        setMicEnabled(false);
+      }
+    };
+
     checkLocationPermission();
+    checkMicPermission();
   }, []);
-  
+
   useEffect(() => {
     if (latitude && longitude) {
       fetchWeatherData();
@@ -66,11 +81,17 @@ export default function Dashboard({ baseURL}) {
 
   const weatherIcon = (iconCode) => `/icons/${iconCode}.svg`;
 
+  const handleVoiceCommand = (transcript) => {
+    console.log('Voice command:', transcript);
+    // You can add custom logic here to handle different voice commands
+  };
+
   return (
     <div>
       {!locationEnabled && <LocationPrompt />}
-      {locationEnabled && !data && <LoadingPrompt />}
-      {locationEnabled && data && <div className="flex flex-col pt-4 md:pt-0 justify-center bg-cover w-full min-h-screen" style={{ backgroundImage }}>
+      {!micEnabled && <MicPrompt />}
+      {locationEnabled && micEnabled && !data && <LoadingPrompt />}
+      {locationEnabled && micEnabled && data && <div className="flex flex-col pt-4 md:pt-0 justify-center bg-cover w-full min-h-screen" style={{ backgroundImage }}>
         <div className="align-middle mx-4 py-4 lg:mx-10 bg-gradient-to-r from-black to-[#0a2e3f73] rounded-2xl">
           <div className=" w-full pb-4 flex flex-wrap">
             <div className="pl-4 pt-4">
@@ -131,6 +152,7 @@ export default function Dashboard({ baseURL}) {
           </div>
         </div>
       </div>}
+      <SpeechRecognitionComponent onResult={handleVoiceCommand} />
     </div>
   );
 }

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import moment from "moment";
 import LocationPrompt from './LocationPrompt';
+import LoadingPrompt from "./LoadingPrompt";
 
 export default function Dashboard({ baseURL}) {
   const [data, setData] = useState(null);
@@ -32,6 +33,7 @@ export default function Dashboard({ baseURL}) {
     const checkLocationPermission = async () => {
       try {
         const { state } = await navigator.permissions.query({ name: 'geolocation' });
+        console.log('Location permission state:', state, state === 'granted');
         setLocationEnabled(state === 'granted');
         if (state === 'granted') {
           // get location and fetch weather data
@@ -54,10 +56,6 @@ export default function Dashboard({ baseURL}) {
     }
   }, [latitude, longitude]);
 
-  if (!data) {
-    return <div>Loading...</div>;
-  }
-
   const formatDate = (timestamp, timezone) => {
     return moment.utc(new Date().setTime(timestamp * 1000)).add(timezone, "seconds").format("dddd, MMMM Do YYYY");
   };
@@ -69,10 +67,10 @@ export default function Dashboard({ baseURL}) {
   const weatherIcon = (iconCode) => `/icons/${iconCode}.svg`;
 
   return (
-    
     <div>
       {!locationEnabled && <LocationPrompt />}
-      {locationEnabled && <div className="flex flex-col pt-4 md:pt-0 justify-center bg-cover w-full min-h-screen" style={{ backgroundImage }}>
+      {locationEnabled && !data && <LoadingPrompt />}
+      {locationEnabled && data && <div className="flex flex-col pt-4 md:pt-0 justify-center bg-cover w-full min-h-screen" style={{ backgroundImage }}>
         <div className="align-middle mx-4 py-4 lg:mx-10 bg-gradient-to-r from-black to-[#0a2e3f73] rounded-2xl">
           <div className=" w-full pb-4 flex flex-wrap">
             <div className="pl-4 pt-4">

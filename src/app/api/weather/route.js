@@ -17,7 +17,7 @@ export async function GET(request, context) {
     headers: {
       accept: "application/json",
     },
-    next: { revalidate: 60 },
+    next: { revalidate: 300 },
     //we can set the results as valid for 60 seconds
   });
   // check resp status

@@ -52,7 +52,7 @@ export default function Maindata({ baseURL, city = "Ottawa", setBackgroundImageU
         </div>
 
         <div className="text-white text-center w-full border-b-2 pb-8 flex flex-wrap">
-          {!cityValid && <span>City "{city}" not found</span>}
+          {!cityValid && <span>City &quot;{city}&quot; not found</span>}
           <div className="text-center flex h-[15rem] lg:w-1/2 flex-row lg:border-r-2">
             <img src={weatherIcon(data.list[0].weather[0].icon)} alt="weather icon" className="w-1/2" />
             <div className="flex flex-col justify-center lg:ml-20 md:ml-15 sm:ml-10">

@@ -49,9 +49,20 @@ export default function Dashboard({ baseURL }) {
       }
     };
 
-    // TODO: fix mock locations
-    setLatitude(45.421532);
-    setLongitude(-75.697189);
+    const fetchLocation = async () => {
+      try{
+        // get location from ip
+        const locationResponse = await fetch(`${baseURL}/api/location`);
+        // {"ip":"76.66.143.79","hostname":"bras-base-otwaon0156w-grc-08-76-66-143-79.dsl.bell.ca","city":"Ottawa","region":"Ontario","country":"CA","loc":"45.4112,-75.6981","org":"AS577 Bell Canada","postal":"K1R","timezone":"America/Toronto"}
+        const location = await locationResponse.json();
+        setLatitude(location.loc.split(",")[0]);
+        setLongitude(location.loc.split(",")[1]);
+      }catch(error){
+        console.error("Failed to fetch location data:", error);
+      }
+    };
+
+    fetchLocation();
     checkMicrophonePermission();
   }, []);
 

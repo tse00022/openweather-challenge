@@ -52,7 +52,7 @@ export default function Maindata({ baseURL, city = "Ottawa", setBackgroundImageU
         </div>
 
         <div className="text-white text-center w-full border-b-2 pb-8 flex flex-wrap">
-          {!cityValid && <span>City &quot;{city}&quot; not found</span>}
+          {!cityValid && <span>City "{city}" not found</span>}
           <div className="text-center flex h-[15rem] lg:w-1/2 flex-row lg:border-r-2">
             <img src={weatherIcon(data.list[0].weather[0].icon)} alt="weather icon" className="w-1/2" />
             <div className="flex flex-col justify-center lg:ml-20 md:ml-15 sm:ml-10">
@@ -64,33 +64,27 @@ export default function Maindata({ baseURL, city = "Ottawa", setBackgroundImageU
           <div className="h-[15rem] flex-grow text-center flex flex-wrap w-min-content">
             <div className="w-1/3 h-1/2 flex-grow text-center pt-8">
               <span className="text-2xl font-bold font-alexandria">{data.list[0].main.temp_max.toFixed(1)}</span>
-              <br />
-              <span className="text-sm font-bold font-sans text-lightgray">High</span>
+              <div className="text-sm font-bold font-sans text-lightgray">High</div>
             </div>
             <div className="w-1/3 h-1/2 flex-grow text-center pt-8">
               <span className="text-2xl font-bold font-alexandria">{data.list[0].wind.speed.toFixed()} km/h</span>
-              <br />
-              <span className="text-sm font-bold font-sans text-lightgray">Wind Speed</span>
+              <div className="text-sm font-bold font-sans text-lightgray">Wind Speed</div>
             </div>
             <div className="w-1/3 h-1/2 flex-grow text-center pt-8">
               <span className="text-2xl font-bold font-alexandria">{formatTime(data.city.sunrise, data.city.timezone)}</span>
-              <br />
-              <span className="text-sm font-bold font-sans text-lightgray">Sunrise</span>
+              <div className="text-sm font-bold font-sans text-lightgray">Sunrise</div>
             </div>
             <div className="w-1/3 h-1/2 flex-grow text-center pt-8">
               <span className="text-2xl font-bold font-alexandria">{data.list[0].main.temp_min.toFixed(1)}</span>
-              <br />
-              <span className="text-sm font-bold font-sans text-lightgray">Low</span>
+              <div className="text-sm font-bold font-sans text-lightgray">Low</div>
             </div>
             <div className="w-1/3 h-1/2 flex-grow text-center pt-8">
               <span className="text-2xl font-bold font-alexandria">{data.list[0].main.humidity}%</span>
-              <br />
-              <span className="text-sm font-bold font-sans text-lightgray">Humidity</span>
+              <div className="text-sm font-bold font-sans text-lightgray">Humidity</div>
             </div>
             <div className="w-1/3 h-1/2 flex-grow text-center pt-8">
               <span className="text-2xl font-bold font-alexandria">{formatTime(data.city.sunset, data.city.timezone)}</span>
-              <br />
-              <span className="text-sm font-bold font-sans text-lightgray">Sunset</span>
+              <div className="text-sm font-bold font-sans text-lightgray">Sunset</div>
             </div>
           </div>
         </div>
@@ -100,18 +94,11 @@ export default function Maindata({ baseURL, city = "Ottawa", setBackgroundImageU
           {data.list.slice(7, 40).filter((_, index) => index % 8 === 0).map((item, index) => (
             <div key={index} className="h-[22rem] flex-grow text-center pt-8 border border-gray-600 text-white">
               <span className="text-xl font-bold font-sans">{moment(new Date().setTime(item.dt * 1000)).format("ddd")}</span>
-              <br />
               <div className="flex justify-center"><img src={weatherIcon(item.weather[0].icon)} alt="weather icon" className="w-20" /></div>
-              <span className="font-bold text-lg font-sans">Temp </span>
-              <span className="text-base font-sans text-lightgray">{item.main.temp.toFixed(1)} C°</span>
-              <br />
-              <span className="font-bold text-lg font-sans">Feel </span>
-              <span className="text-base font-sans text-lightgray">{item.main.feels_like.toFixed(1)} C°</span>
-              <br />
-              <span className="font-bold text-lg font-sans">Moist </span>
-              <span className="text-base font-sans text-lightgray">{item.main.humidity.toFixed()}%</span>
-              <br />
-              <span className="font-bold text-lg font-sans">{item.weather[0].main}</span>
+              <div className="font-bold text-lg font-sans">Temp <span className="text-base font-sans text-lightgray">{item.main.temp.toFixed(1)} C°</span></div>
+              <div className="font-bold text-lg font-sans">Feel <span className="text-base font-sans text-lightgray">{item.main.feels_like.toFixed(1)} C°</span></div>
+              <div className="font-bold text-lg font-sans">Moist <span className="text-base font-sans text-lightgray">{item.main.humidity.toFixed()}%</span></div>
+              <div className="font-bold text-lg font-sans">{item.weather[0].main}</div>
             </div>
           ))}
         </div>

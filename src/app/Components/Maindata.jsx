@@ -89,16 +89,16 @@ export default function Maindata({ baseURL, city = "Ottawa", setBackgroundImageU
           </div>
         </div>
 
-        <div className="pt-6 pl-4  text-2xl font-semibold font-sans">Five Days Forecast</div>
-        <div className="flex w-full justify-center items-center h-auto pt-5 px-2.5">
+        <div className="pt-6 pl-4 text-2xl font-semibold font-sans">Five Days Forecast</div>
+        <div className="flex flex-col gap-1 sm:flex-row w-full justify-center items-center h-auto pt-5 px-2.5">
           {data.list.slice(7, 40).filter((_, index) => index % 8 === 0).map((item, index) => (
-            <div key={index} className="h-[22rem] flex-grow text-center pt-8 border border-gray-600 ">
+            <div key={index} className="pb-4 w-full flex-grow text-center pt-8 border border-white-300 ">
               <span className="text-xl font-bold font-sans">{moment(new Date().setTime(item.dt * 1000)).format("ddd")}</span>
               <div className="flex justify-center"><img src={weatherIcon(item.weather[0].icon)} alt="weather icon" className="w-20" /></div>
-              <div className="font-bold text-lg font-sans">Temp <span className="text-base font-sans text-lightgray">{item.main.temp.toFixed(1)} C°</span></div>
-              <div className="font-bold text-lg font-sans">Feel <span className="text-base font-sans text-lightgray">{item.main.feels_like.toFixed(1)} C°</span></div>
-              <div className="font-bold text-lg font-sans">Moist <span className="text-base font-sans text-lightgray">{item.main.humidity.toFixed()}%</span></div>
-              <div className="font-bold text-lg font-sans">{item.weather[0].main}</div>
+              <div className="pt-2 font-bold text-lg font-sans">{item.weather[0].main}</div>
+              <div className="pt-2 font-bold text-lg font-sans">Temp <span className="text-base font-sans text-lightgray">{item.main.temp.toFixed(1)} C°</span></div>
+              <div className="pt-2 font-bold text-lg font-sans">Feel <span className="text-base font-sans text-lightgray">{item.main.feels_like.toFixed(1)} C°</span></div>
+              <div className="pt-2 font-bold text-lg font-sans">Humidity <span className="text-base font-sans text-lightgray">{item.main.humidity.toFixed()}%</span></div>
             </div>
           ))}
         </div>

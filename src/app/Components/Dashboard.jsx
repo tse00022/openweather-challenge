@@ -1,7 +1,6 @@
 'use client'
 import React, { useState, useEffect } from "react";
 import moment from "moment";
-import LocationPrompt from './LocationPrompt';
 import LoadingPrompt from "./LoadingPrompt";
 import MicrophonePrompt from "./MicrophonePrompt";
 import { createModel, KaldiRecognizer } from "vosk-browser";
@@ -10,11 +9,10 @@ export default function Dashboard({ baseURL }) {
   const [data, setData] = useState(null);
   const [cityValid, setCityValid] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState(`url("./pics/01d.jpg")`);
-  const [locationEnabled, setLocationEnabled] = useState(false);
   const [microphoneEnabled, setMicrophoneEnabled] = useState(false);
+  const [recognizer, setRecognizer] = useState(null);
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
-  const [recognizer, setRecognizer] = useState(null);
 
   const fetchWeatherData = async () => {
     const url = `${baseURL}/api/weather?lat=${latitude}&lon=${longitude}`;
@@ -34,21 +32,6 @@ export default function Dashboard({ baseURL }) {
   };
 
   useEffect(() => {
-    const checkLocationPermission = async () => {
-      try {
-        const { state } = await navigator.permissions.query({ name: 'geolocation' });
-        console.log('Location permission state:', state, state === 'granted');
-        setLocationEnabled(state === 'granted');
-        if (state === 'granted') {
-          navigator.geolocation.getCurrentPosition(async (position) => {
-            setLatitude(position.coords.latitude);
-            setLongitude(position.coords.longitude);
-          });
-        }
-      } catch (error) {
-        console.error('Error checking location permission:', error);
-      }
-    };
 
     const checkMicrophonePermission = async () => {
       try {
@@ -61,12 +44,15 @@ export default function Dashboard({ baseURL }) {
       }
     };
 
-    checkLocationPermission();
+    // TODO: fix mock locations
+    setLatitude(45.421532);
+    setLongitude(-75.697189);
     checkMicrophonePermission();
   }, []);
 
   useEffect(() => {
     if (latitude && longitude) {
+      console.log("Fetching weather data...")
       fetchWeatherData();
     }
   }, [latitude, longitude]);
@@ -133,10 +119,9 @@ export default function Dashboard({ baseURL }) {
 
   return (
     <div>
-      {!locationEnabled && <LocationPrompt />}
-      {locationEnabled && !data && <LoadingPrompt />}
-      {locationEnabled && data && !microphoneEnabled && <MicrophonePrompt />}
-      {locationEnabled && data && microphoneEnabled && <div className="flex flex-col pt-4 md:pt-0 justify-center bg-cover w-full min-h-screen" style={{ backgroundImage }}>
+      {data && !microphoneEnabled && <MicrophonePrompt />}
+      {!data && <LoadingPrompt />}
+      {data && microphoneEnabled && <div className="flex flex-col pt-4 md:pt-0 justify-center bg-cover w-full min-h-screen" style={{ backgroundImage }}>
         <div className="align-middle mx-4 py-4 lg:mx-10 bg-gradient-to-r from-black to-[#0a2e3f73] rounded-2xl">
           <div className=" w-full pb-4 flex flex-wrap">
             <div className="pl-4 pt-4">

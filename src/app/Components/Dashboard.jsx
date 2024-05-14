@@ -3,14 +3,18 @@ import React, { useState, useEffect } from "react";
 import moment from "moment";
 import LocationPrompt from './LocationPrompt';
 import LoadingPrompt from "./LoadingPrompt";
+import MicrophonePrompt from "./MicrophonePrompt";
+import { createModel, KaldiRecognizer } from "vosk-browser";
 
 export default function Dashboard({ baseURL }) {
   const [data, setData] = useState(null);
   const [cityValid, setCityValid] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState(`url("./pics/01d.jpg")`);
   const [locationEnabled, setLocationEnabled] = useState(false);
+  const [microphoneEnabled, setMicrophoneEnabled] = useState(false);
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
+  const [recognizer, setRecognizer] = useState(null);
 
   const fetchWeatherData = async () => {
     const url = `${baseURL}/api/weather?lat=${latitude}&lon=${longitude}`;
@@ -46,7 +50,19 @@ export default function Dashboard({ baseURL }) {
       }
     };
 
+    const checkMicrophonePermission = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        setMicrophoneEnabled(true);
+        stream.getTracks().forEach(track => track.stop());
+      } catch (error) {
+        console.error('Microphone permission denied:', error);
+        setMicrophoneEnabled(false);
+      }
+    };
+
     checkLocationPermission();
+    checkMicrophonePermission();
   }, []);
 
   useEffect(() => {
@@ -54,6 +70,56 @@ export default function Dashboard({ baseURL }) {
       fetchWeatherData();
     }
   }, [latitude, longitude]);
+
+  useEffect(() => {
+    const setupVoiceRecognition = async () => {
+      const model = await createModel("/models/vosk-model-small-en-us-0.15.tar.gz");
+      const recognizer = new model.KaldiRecognizer(16000);
+      recognizer.on("result", (message) => {
+        console.log(`Result: ${message.result.text}`);
+      });
+      recognizer.on("partialresult", (message) => {
+        console.log(`Partial result: ${message.result.partial}`);
+      });
+      setRecognizer(recognizer);
+    };
+
+    if (microphoneEnabled) {
+      setupVoiceRecognition();
+    }
+  }, [microphoneEnabled]);
+
+  useEffect(() => {
+    const startVoiceRecognition = async () => {
+      if (recognizer) {
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: false,
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            channelCount: 1,
+            sampleRate: 16000
+          },
+        });
+
+        const audioContext = new AudioContext();
+        const recognizerNode = audioContext.createScriptProcessor(4096, 1, 1);
+        recognizerNode.onaudioprocess = (event) => {
+          try {
+            recognizer.acceptWaveform(event.inputBuffer);
+          } catch (error) {
+            console.error('acceptWaveform failed', error);
+          }
+        };
+        const source = audioContext.createMediaStreamSource(mediaStream);
+        source.connect(recognizerNode);
+      }
+    };
+
+    if (recognizer) {
+      startVoiceRecognition();
+    }
+  }, [recognizer]);
 
   const formatDate = (timestamp, timezone) => {
     return moment.utc(new Date().setTime(timestamp * 1000)).add(timezone, "seconds").format("dddd, MMMM Do YYYY");
@@ -69,7 +135,8 @@ export default function Dashboard({ baseURL }) {
     <div>
       {!locationEnabled && <LocationPrompt />}
       {locationEnabled && !data && <LoadingPrompt />}
-      {locationEnabled && data && <div className="flex flex-col pt-4 md:pt-0 justify-center bg-cover w-full min-h-screen" style={{ backgroundImage }}>
+      {locationEnabled && data && !microphoneEnabled && <MicrophonePrompt />}
+      {locationEnabled && data && microphoneEnabled && <div className="flex flex-col pt-4 md:pt-0 justify-center bg-cover w-full min-h-screen" style={{ backgroundImage }}>
         <div className="align-middle mx-4 py-4 lg:mx-10 bg-gradient-to-r from-black to-[#0a2e3f73] rounded-2xl">
           <div className=" w-full pb-4 flex flex-wrap">
             <div className="pl-4 pt-4">

@@ -13,6 +13,7 @@ export default function Dashboard({ baseURL }) {
   const [recognizer, setRecognizer] = useState(null);
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
+  const [text, setText] = useState("");
 
   const fetchWeatherData = async () => {
     const url = `${baseURL}/api/weather?lat=${latitude}&lon=${longitude}`;
@@ -65,7 +66,10 @@ export default function Dashboard({ baseURL }) {
         console.log(`Result: ${message.result.text}`);
       });
       recognizer.on("partialresult", (message) => {
-        console.log(`Partial result: ${message.result.partial}`);
+        if (message.result.partial){
+          console.log(`Partial result: ${message.result.partial}`);
+          setText(message.result.partial);
+        }
       });
       setRecognizer(recognizer);
     };
@@ -157,6 +161,7 @@ export default function Dashboard({ baseURL }) {
             <div className="pl-4 pt-4">
               <div className="text-3xl font-bold">{data.city.name}</div>
               <span className="pt-0 text-right text-sm font-bold text-lightgray">{formatDate(data.list[0].dt, data.city.timezone)}</span>
+              <div>{text}</div>
             </div>
           </div>
           <div className="border-b-2 pb-8 flex flex-wrap">

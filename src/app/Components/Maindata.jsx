@@ -42,9 +42,9 @@ export default function Maindata({ baseURL, city = "Ottawa", setBackgroundImageU
   const weatherIcon = (iconCode) => `/icons/${iconCode}.svg`;
 
   return (
-    <div className="bg-cover w-full h-screen" style={{ backgroundImage: `url("./pics/01d.jpg")` }}>
-      <div className="mx-10 bg-gradient-to-r from-black to-[#0a2e3f73] p-0 rounded-2xl">
-        <div className="text-white text-center w-full border-b-2 pb-4 flex flex-wrap">
+    <div className="flex flex-col pt-4 md:pt-0 justify-center bg-cover w-full min-h-screen" style={{ backgroundImage: `url("./pics/01d.jpg")` }}>
+      <div className="align-middle mx-4 lg:mx-10 bg-gradient-to-r from-black to-[#0a2e3f73] rounded-2xl">
+        <div className="text-white w-full pb-4 flex flex-wrap">
           <div className="pl-4 pt-4">
             <div className="text-3xl font-bold font-roboto text-white">{data.city.name}</div>
             <span className="pt-0 text-right text-sm font-bold font-sans text-lightgray">{formatDate(data.list[0].dt, data.city.timezone)}</span>
@@ -55,7 +55,7 @@ export default function Maindata({ baseURL, city = "Ottawa", setBackgroundImageU
           {!cityValid && <span>City "{city}" not found</span>}
           <div className="text-center flex h-[15rem] lg:w-1/2 flex-row lg:border-r-2">
             <img src={weatherIcon(data.list[0].weather[0].icon)} alt="weather icon" className="w-1/2" />
-            <div className="flex flex-col justify-center lg:ml-20 md:ml-10 sm:ml-5">
+            <div className="flex flex-col justify-center lg:ml-20 md:ml-15 sm:ml-10">
               <span className="text-4xl font-bold font-alexandria">{data.list[0].main.temp.toFixed(1)}°</span>
               <span className="text-sm font-bold font-sans text-lightgray">{data.list[0].weather[0].description}</span>
             </div>

@@ -1,8 +1,15 @@
+import { NextResponse } from 'next/server';
+
 export async function GET(request, context) {
+  const { searchParams } = new URL(request.url);
+  //the request url is /api/weather/lat=${latitude}&lon=${longitude}
+  // get the latitude and longitude query parameters
+  const LATITUDE = searchParams.get('lat');
+  const LONGITUDE = searchParams.get('lon');
+
   //each method function will get passed the request object
-  const CITY = context.params.city;
   const API_KEY = process.env.API_KEY;
-  const url = `https://api.openweathermap.org/data/2.5/forecast?q=${CITY}&appid=${API_KEY}&units=metric&formatted=0`
+  const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${LATITUDE}&lon=${LONGITUDE}&appid=${API_KEY}&units=metric&formatted=0`
   //each method should return a response object
   //we can do a fetch call to another api from here
   let resp = await fetch(url, {

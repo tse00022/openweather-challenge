@@ -3,14 +3,16 @@ import React, { useState, useEffect } from "react";
 import moment from "moment";
 import LocationPrompt from './LocationPrompt';
 
-export default function Dashboard({ baseURL, city = "mumbai" }) {
+export default function Dashboard({ baseURL}) {
   const [data, setData] = useState(null);
   const [cityValid, setCityValid] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState(`url("./pics/01d.jpg")`);
   const [locationEnabled, setLocationEnabled] = useState(false);
+  const [latitude, setLatitude] = useState(null);
+  const [longitude, setLongitude] = useState(null);
 
-  const fetchWeatherData = async (city) => {
-    const url = `${baseURL}/api/weather/${city}`;
+  const fetchWeatherData = async () => {
+    const url = `${baseURL}/api/weather?lat=${latitude}&lon=${longitude}`;
     try {
       const response = await fetch(url);
       if (!response.ok) {
@@ -31,14 +33,26 @@ export default function Dashboard({ baseURL, city = "mumbai" }) {
       try {
         const { state } = await navigator.permissions.query({ name: 'geolocation' });
         setLocationEnabled(state === 'granted');
+        if (state === 'granted') {
+          // get location and fetch weather data
+          navigator.geolocation.getCurrentPosition(async (position) => {
+            setLatitude(position.coords.latitude);
+            setLongitude(position.coords.longitude);
+          });
+        }
       } catch (error) {
         console.error('Error checking location permission:', error);
       }
     };
 
     checkLocationPermission();
-    fetchWeatherData(city);
-  }, [city]);
+  }, []);
+  
+  useEffect(() => {
+    if (latitude && longitude) {
+      fetchWeatherData();
+    }
+  }, [latitude, longitude]);
 
   if (!data) {
     return <div>Loading...</div>;

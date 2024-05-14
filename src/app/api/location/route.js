@@ -1,12 +1,7 @@
-import requestIp from 'request-ip'
-
 export async function GET(request, context) {
 
-  let ip = requestIp.getClientIp(request)
-  if (!ip) {
-    ip = "76.66.143.79"
-  }
-  console.log("detectedIp", ip);
+  let ip = request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for") || "76.66.143.79";
+  console.log("detectedIp", request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for"));
 
   //each method function will get passed the request object
   const API_KEY = process.env.API_KEY;

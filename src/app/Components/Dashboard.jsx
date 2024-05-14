@@ -52,11 +52,11 @@ export default function Dashboard({ baseURL, city = "mumbai" }) {
           </div>
         </div>
 
-        <div className="text-center border-b-2 pb-8 flex flex-wrap">
+        <div className="border-b-2 pb-8 flex flex-wrap">
           {!cityValid && <span>City {city} not found</span>}
-          <div className="text-center flex h-[8rem] w-1/2 flex-row lg:border-r-2">
+          <div className="flex h-[8rem] w-1/2 flex-row sm:border-r-2">
             <img src={weatherIcon(data.list[0].weather[0].icon)} alt="weather icon" className="w-1/2" />
-            <div className="flex flex-col justify-center lg:ml-20 md:ml-15 sm:ml-10">
+            <div className="flex flex-col justify-center ml-5 md:ml-10">
               <span className="text-4xl font-bold">{data.list[0].main.temp.toFixed(1)}°</span>
               <span className="text-sm font-bold text-lightgray">{data.list[0].weather[0].description}</span>
             </div>
@@ -91,7 +91,7 @@ export default function Dashboard({ baseURL, city = "mumbai" }) {
         </div>
 
         <div className="pt-6 pl-4 text-2xl font-semibold">Five Days Forecast</div>
-        <div className="grid grid-cols-1 sm:grid-cols-5 gap-1 w-full justify-center items-center h-auto pt-5 px-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-1 w-full justify-center items-center h-auto pt-1 px-2.5">
           {data.list.slice(7, 40).filter((_, index) => index % 8 === 0).map((item, index) => (
             <div key={index} className="day-forecast pb-4 flex flex-col grow h-full text-center pt-8 border border-white-300">
               <div className="flex flex-col grow h-full">

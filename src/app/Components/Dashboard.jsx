@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import moment from "moment";
 
-export default function Maindata({ baseURL, city = "Ottawa", setBackgroundImageURL }) {
+export default function Dashboard({ baseURL, city = "Ottawa", setBackgroundImageURL }) {
   const [data, setData] = useState(null);
   const [cityValid, setCityValid] = useState(false);
 

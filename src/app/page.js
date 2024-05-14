@@ -1,10 +1,10 @@
-import Maindata from './Components/Maindata';
+import Dashboard from './Components/Dashboard';
 
 export default function Page() {
 
   return (
     <>
-      <Maindata baseURL={process.env.BASE_URL} />
+      <Dashboard baseURL={process.env.BASE_URL} />
     </>
   );
 }

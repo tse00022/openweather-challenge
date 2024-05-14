@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import moment from "moment";
 import LoadingPrompt from "./LoadingPrompt";
 import MicrophonePrompt from "./MicrophonePrompt";
+import DownloadingPrompt from "./DownloadingPrompt";
 import { createModel, KaldiRecognizer } from "vosk-browser";
 import { startVoiceRecognition } from "../../utils/startVoiceRecognition";
 import * as fuzz from 'fuzzball';
@@ -16,6 +17,7 @@ export default function Dashboard({ baseURL }) {
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
   const [text, setText] = useState("");
+  const [downloadingModel, setDownloadingModel] = useState(false);
   let prevPartialResult = "";
 
   const fetchWeatherData = async () => {
@@ -62,7 +64,9 @@ export default function Dashboard({ baseURL }) {
 
   useEffect(() => {
     const setupVoiceRecognition = async () => {
+      setDownloadingModel(true);
       const model = await createModel("/models/vosk-model-small-en-us-0.15.tar.gz");
+      setDownloadingModel(false);
       const recognizer = new model.KaldiRecognizer(16000);
       recognizer.on("partialresult", (message) => {
         if (message.result.partial != prevPartialResult){
@@ -141,7 +145,8 @@ export default function Dashboard({ baseURL }) {
     <div>
       {data && !microphoneEnabled && <MicrophonePrompt />}
       {!data && <LoadingPrompt />}
-      {data && microphoneEnabled && <div className="flex flex-col pt-4 md:pt-0 justify-center bg-cover w-full min-h-screen" style={{ backgroundImage }}>
+      {downloadingModel && <DownloadingPrompt />}
+      {!downloadingModel && data && microphoneEnabled && <div className="flex flex-col pt-4 md:pt-0 justify-center bg-cover w-full min-h-screen" style={{ backgroundImage }}>
         <div className="align-middle mx-4 py-4 lg:mx-10 bg-gradient-to-r from-black to-[#0a2e3f73] rounded-2xl">
           <div className=" w-full pb-4 flex flex-wrap">
             <div className="pl-4 pt-4">

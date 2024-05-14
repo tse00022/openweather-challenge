@@ -44,14 +44,14 @@ export default function Maindata({ baseURL, city = "Ottawa", setBackgroundImageU
   return (
     <div className="flex flex-col pt-4 md:pt-0 justify-center bg-cover w-full min-h-screen" style={{ backgroundImage: `url("./pics/01d.jpg")` }}>
       <div className="align-middle mx-4 lg:mx-10 bg-gradient-to-r from-black to-[#0a2e3f73] rounded-2xl">
-        <div className="text-white w-full pb-4 flex flex-wrap">
+        <div className=" w-full pb-4 flex flex-wrap">
           <div className="pl-4 pt-4">
-            <div className="text-3xl font-bold font-roboto text-white">{data.city.name}</div>
+            <div className="text-3xl font-bold font-roboto ">{data.city.name}</div>
             <span className="pt-0 text-right text-sm font-bold font-sans text-lightgray">{formatDate(data.list[0].dt, data.city.timezone)}</span>
           </div>
         </div>
 
-        <div className="text-white text-center w-full border-b-2 pb-8 flex flex-wrap">
+        <div className=" text-center w-full border-b-2 pb-8 flex flex-wrap">
           {!cityValid && <span>City {city} not found</span>}
           <div className="text-center flex h-[15rem] lg:w-1/2 flex-row lg:border-r-2">
             <img src={weatherIcon(data.list[0].weather[0].icon)} alt="weather icon" className="w-1/2" />
@@ -89,10 +89,10 @@ export default function Maindata({ baseURL, city = "Ottawa", setBackgroundImageU
           </div>
         </div>
 
-        <div className="pt-6 pl-4 text-white text-2xl font-semibold font-sans">Five Days Forecast</div>
+        <div className="pt-6 pl-4  text-2xl font-semibold font-sans">Five Days Forecast</div>
         <div className="flex w-full justify-center items-center h-auto pt-5 px-2.5">
           {data.list.slice(7, 40).filter((_, index) => index % 8 === 0).map((item, index) => (
-            <div key={index} className="h-[22rem] flex-grow text-center pt-8 border border-gray-600 text-white">
+            <div key={index} className="h-[22rem] flex-grow text-center pt-8 border border-gray-600 ">
               <span className="text-xl font-bold font-sans">{moment(new Date().setTime(item.dt * 1000)).format("ddd")}</span>
               <div className="flex justify-center"><img src={weatherIcon(item.weather[0].icon)} alt="weather icon" className="w-20" /></div>
               <div className="font-bold text-lg font-sans">Temp <span className="text-base font-sans text-lightgray">{item.main.temp.toFixed(1)} C°</span></div>

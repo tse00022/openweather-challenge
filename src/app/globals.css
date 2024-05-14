@@ -27,6 +27,7 @@ body {
   min-height: 100vh;
   text-rendering: optimizeSpeed;
   margin: 0;
+  color: white;
 }
 
 /* Update default margin */

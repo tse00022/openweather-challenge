@@ -18,22 +18,25 @@ export default function Dashboard({ baseURL }) {
   const [longitude, setLongitude] = useState(null);
   const [text, setText] = useState("");
   const [downloadingModel, setDownloadingModel] = useState(false);
+  const [weatherUpdateInterval, setWeatherUpdateInterval] = useState(null);
   let prevPartialResult = "";
 
   const fetchWeatherData = async () => {
-    const url = `${baseURL}/api/weather?lat=${latitude}&lon=${longitude}`;
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        setCityValid(false);
-        return;
+    if (latitude && longitude) {
+      const url = `${baseURL}/api/weather?lat=${latitude}&lon=${longitude}`;
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          setCityValid(false);
+          return;
+        }
+        const actualData = await response.json();
+        setCityValid(true);
+        setData(actualData);
+        setBackgroundImage(`url("./pics/${actualData.list[0].weather[0].icon}.jpg")`);
+      } catch (error) {
+        console.error("Failed to fetch weather data:", error);
       }
-      const actualData = await response.json();
-      setCityValid(true);
-      setData(actualData);
-      setBackgroundImage(`url("./pics/${actualData.list[0].weather[0].icon}.jpg")`);
-    } catch (error) {
-      console.error("Failed to fetch weather data:", error);
     }
   };
 
@@ -50,13 +53,13 @@ export default function Dashboard({ baseURL }) {
     };
 
     const fetchLocation = async () => {
-      try{
+      try {
         // get location from ip
         const locationResponse = await fetch(`${baseURL}/api/location`);
         const location = await locationResponse.json();
         setLatitude(location.loc.split(",")[0]);
         setLongitude(location.loc.split(",")[1]);
-      }catch(error){
+      } catch (error) {
         console.error("Failed to fetch location data:", error);
         setLatitude(43.7946);
         setLongitude(-79.2644);
@@ -69,8 +72,10 @@ export default function Dashboard({ baseURL }) {
 
   useEffect(() => {
     if (latitude && longitude) {
-      console.log("Fetching weather data...")
       fetchWeatherData();
+      const interval = setInterval(fetchWeatherData, 1800000); // 5 seconds in milliseconds
+      setWeatherUpdateInterval(interval);
+      return () => clearInterval(interval);
     }
   }, [latitude, longitude]);
 
@@ -81,7 +86,7 @@ export default function Dashboard({ baseURL }) {
       setDownloadingModel(false);
       const recognizer = new model.KaldiRecognizer(16000);
       recognizer.on("partialresult", (message) => {
-        if (message.result.partial != prevPartialResult){
+        if (message.result.partial != prevPartialResult) {
           prevPartialResult = message.result.partial;
           setText(message.result.partial);
           matchVoiceCommand(message.result.partial);
@@ -105,10 +110,10 @@ export default function Dashboard({ baseURL }) {
     if (!voice) {
       return;
     }
-  
+
     const commands = ["open weather"];
-    const threshold = 70; 
-  
+    const threshold = 70;
+
     const calculateSimilarity = (voiceWords, commandWords) => {
       let totalSimilarity = 0;
       commandWords.forEach(commandWord => {
@@ -123,11 +128,11 @@ export default function Dashboard({ baseURL }) {
       });
       return totalSimilarity / commandWords.length;
     };
-  
+
     const voiceWords = voice.toLowerCase().split(' ');
     let bestMatch = null;
     let bestScore = 0;
-  
+
     commands.forEach(command => {
       const commandWords = command.toLowerCase().split(' ');
       const score = calculateSimilarity(voiceWords, commandWords);
@@ -136,7 +141,7 @@ export default function Dashboard({ baseURL }) {
         bestMatch = command;
       }
     });
-  
+
     if (bestMatch && bestScore > threshold) {
       console.log("Matched command:", bestMatch, "with score:", bestScore, "for command:", voice);
       // Execute the command

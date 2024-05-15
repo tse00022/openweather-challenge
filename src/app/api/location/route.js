@@ -1,6 +1,10 @@
 export async function GET(request, context) {
 
   let ip = request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for") || "76.66.143.79";
+  if (ip === "::1" || ip === "localhost" ) {
+    ip = "76.66.143.79";
+  }
+
   console.log("detectedIp", request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for"));
 
   //each method function will get passed the request object

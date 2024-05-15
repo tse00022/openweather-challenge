@@ -113,11 +113,9 @@ export default function Dashboard({ baseURL }) {
   }, [recognizer]);
 
   const speak = (text) => {
-    console.log("checkpoint 1 ", "stop voice recognition")
     stopVoiceRecognition(recognizer);
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.onend = () => {
-      console.log("checkpoint 2 ", "resume voice recognition")
       resumeVoiceRecognition(recognizer);
     };
     speechSynthesis.speak(utterance);
@@ -128,19 +126,23 @@ export default function Dashboard({ baseURL }) {
     setOverlayText(text);
   };
 
-  const voiceLoop = () => {
+  function sleep(ms = 0) { return new Promise(r => setTimeout(r, ms)); }
+
+  const voiceLoop = async () => {
+
     // check for voiceStack
     if (voiceStack.length === 0) {
-      return setTimeout(voiceLoop, 1000);
+      await sleep(1000);
+      return voiceLoop();
     }
-    
+
     const voice = voiceStack.shift();
-    console.log("checkpoint 10 ", "voice shift ", voice)
     matchVoiceCommand(voice);
-    return setTimeout(voiceLoop, 1000);
+    await sleep(1000);
+    return voiceLoop();
   };
 
-  const matchVoiceCommand = (voice) => {
+  const matchVoiceCommand = async (voice) => {
     if (!voice) {
       return;
     }
@@ -179,11 +181,22 @@ export default function Dashboard({ baseURL }) {
     if (bestMatch && bestScore > threshold) {
       // clear voiceStack
       setVoiceStack([]);
+
+      // TODO: why i can't access the state variable here
+      // fetch the lat, long
+      const locationResponse = await fetch(`${baseURL}/api/location`);
+      const location = await locationResponse.json();
+      const lat = location.loc.split(",")[0];
+      const lon = location.loc.split(",")[1];
+
+      // fetch the weather data
+      const weatherResponse = await fetch(`${baseURL}/api/weather?lat=${lat}&lon=${lon}`);
+      const data = await weatherResponse.json();
+
       console.log("Matched command:", bestMatch, "with score:", bestScore, "for command:", voice);
       const weatherInfo = `Today's temperature is from ${data.list[0].main.temp_min.toFixed(1)} to ${data.list[0].main.temp_max.toFixed(1)} Celsius, mainly ${data.list[0].weather[0].description}, Humidity is ${data.list[0].main.humidity}%.`;
       speak(weatherInfo);
       showOverlay(data.list[0].weather[0].icon, data.list[0].weather[0].description);
-      // Execute the command
     } else {
       console.log("No matching command found.");
     }

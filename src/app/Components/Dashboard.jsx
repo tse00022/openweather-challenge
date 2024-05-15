@@ -107,7 +107,7 @@ export default function Dashboard({ baseURL }) {
     }
   
     const commands = ["open weather"];
-    const threshold = 70; // Adjust the threshold as needed
+    const threshold = 70; 
   
     const calculateSimilarity = (voiceWords, commandWords) => {
       let totalSimilarity = 0;

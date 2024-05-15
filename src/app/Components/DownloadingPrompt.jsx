@@ -9,7 +9,10 @@ const LoadingPrompt = () => {
           <div
             className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"
           ></div>
-          <span className="ml-4 text-lg font-semibold text-gray-700">Downloading voice model...</span>
+          <div>
+            <div className="ml-4 text-lg font-semibold text-gray-700">Downloading voice model...</div>
+            <div className="ml-4 text-md text-gray-500">It could take up to 30 seconds</div>
+          </div>
         </div>
       </div>
     </div>

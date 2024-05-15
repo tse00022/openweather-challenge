@@ -23,6 +23,7 @@ export default function Dashboard({ baseURL }) {
   const [weatherUpdateInterval, setWeatherUpdateInterval] = useState(null);
   const [overlayIcon, setOverlayIcon] = useState(null);
   const [overlayText, setOverlayText] = useState("");
+  const [voiceStack, setVoiceStack] = useState([]);
   let prevPartialResult = "";
 
   const fetchWeatherData = async () => {
@@ -72,6 +73,7 @@ export default function Dashboard({ baseURL }) {
 
     fetchLocation();
     checkMicrophonePermission();
+    voiceLoop();
   }, []);
 
   useEffect(() => {
@@ -91,9 +93,9 @@ export default function Dashboard({ baseURL }) {
       const recognizer = new model.KaldiRecognizer(16000);
       recognizer.on("partialresult", (message) => {
         if (message.result.partial != prevPartialResult) {
+          voiceStack.push(message.result.partial);
           prevPartialResult = message.result.partial;
           setText(message.result.partial);
-          matchVoiceCommand(message.result.partial);
         }
       });
       setRecognizer(recognizer);
@@ -124,6 +126,18 @@ export default function Dashboard({ baseURL }) {
   const showOverlay = (icon, text) => {
     setOverlayIcon(icon);
     setOverlayText(text);
+  };
+
+  const voiceLoop = () => {
+    // check for voiceStack
+    if (voiceStack.length === 0) {
+      return setTimeout(voiceLoop, 1000);
+    }
+    
+    const voice = voiceStack.shift();
+    console.log("checkpoint 10 ", "voice shift ", voice)
+    matchVoiceCommand(voice);
+    return setTimeout(voiceLoop, 1000);
   };
 
   const matchVoiceCommand = (voice) => {
@@ -163,6 +177,8 @@ export default function Dashboard({ baseURL }) {
     });
 
     if (bestMatch && bestScore > threshold) {
+      // clear voiceStack
+      setVoiceStack([]);
       console.log("Matched command:", bestMatch, "with score:", bestScore, "for command:", voice);
       const weatherInfo = `Today's temperature is from ${data.list[0].main.temp_min.toFixed(1)} to ${data.list[0].main.temp_max.toFixed(1)} Celsius, mainly ${data.list[0].weather[0].description}, Humidity is ${data.list[0].main.humidity}%.`;
       speak(weatherInfo);

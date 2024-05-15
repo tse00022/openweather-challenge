@@ -6,7 +6,8 @@ import MicrophonePrompt from "./MicrophonePrompt";
 import DownloadingPrompt from "./DownloadingPrompt";
 import WeatherOverlay from "./WeatherOverlay";
 import { createModel, KaldiRecognizer } from "vosk-browser";
-import { startVoiceRecognition } from "../../utils/startVoiceRecognition";
+import { stopVoiceRecognition, resumeVoiceRecognition, startVoiceRecognition } from "../../utils/startVoiceRecognition";
+
 import * as fuzz from 'fuzzball';
 
 export default function Dashboard({ baseURL }) {
@@ -110,7 +111,13 @@ export default function Dashboard({ baseURL }) {
   }, [recognizer]);
 
   const speak = (text) => {
+    console.log("checkpoint 1 ", "stop voice recognition")
+    stopVoiceRecognition(recognizer);
     const utterance = new SpeechSynthesisUtterance(text);
+    utterance.onend = () => {
+      console.log("checkpoint 2 ", "resume voice recognition")
+      resumeVoiceRecognition(recognizer);
+    };
     speechSynthesis.speak(utterance);
   };
 

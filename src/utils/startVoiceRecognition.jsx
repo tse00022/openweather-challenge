@@ -1,19 +1,19 @@
 export const startVoiceRecognition = async (recognizer) => {
-    if (recognizer) {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: false,
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          channelCount: 1,
-          sampleRate: 16000
-        },
-      });
+  if (recognizer) {
+    const mediaStream = await navigator.mediaDevices.getUserMedia({
+      video: false,
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        channelCount: 1,
+        sampleRate: 16000
+      },
+    });
 
-      const audioContext = new AudioContext();
+    const audioContext = new AudioContext();
 
-      // Define the AudioWorkletProcessor as a string
-      const processorCode = `
+    // Define the AudioWorkletProcessor as a string
+    const processorCode = `
         class RecognizerProcessor extends AudioWorkletProcessor {
           process(inputs, outputs, parameters) {
             const input = inputs[0];
@@ -31,25 +31,37 @@ export const startVoiceRecognition = async (recognizer) => {
         registerProcessor('recognizer-processor', RecognizerProcessor);
       `;
 
-      // Create a Blob URL from the processor code
-      const blob = new Blob([processorCode], { type: 'application/javascript' });
-      const url = URL.createObjectURL(blob);
+    // Create a Blob URL from the processor code
+    const blob = new Blob([processorCode], { type: 'application/javascript' });
+    const url = URL.createObjectURL(blob);
 
-      // Add the module to the AudioWorklet
-      await audioContext.audioWorklet.addModule(url);
+    // Add the module to the AudioWorklet
+    await audioContext.audioWorklet.addModule(url);
 
-      const recognizerNode = new AudioWorkletNode(audioContext, 'recognizer-processor');
-      recognizerNode.port.onmessage = (event) => {
-        try {
-          const audioBuffer = audioContext.createBuffer(1, event.data.length, audioContext.sampleRate);
-          audioBuffer.copyToChannel(event.data, 0);
-          recognizer.acceptWaveform(audioBuffer);
-        } catch (error) {
-          console.error('acceptWaveform failed', error);
-        }
-      };
+    const recognizerNode = new AudioWorkletNode(audioContext, 'recognizer-processor');
+    recognizerNode.port.onmessage = (event) => {
+      try {
+        const audioBuffer = audioContext.createBuffer(1, event.data.length, audioContext.sampleRate);
+        audioBuffer.copyToChannel(event.data, 0);
+        recognizer.acceptWaveform(audioBuffer);
+      } catch (error) {
+        console.error('acceptWaveform failed', error);
+      }
+    };
 
-      const source = audioContext.createMediaStreamSource(mediaStream);
-      source.connect(recognizerNode);
-    }
-  };
+    const source = audioContext.createMediaStreamSource(mediaStream);
+    source.connect(recognizerNode);
+  }
+};
+
+export const stopVoiceRecognition = (recognizer) => {
+  if (recognizer) {
+    recognizer.stop();
+  }
+};
+
+export const resumeVoiceRecognition = (recognizer) => {
+  if (recognizer) {
+    startVoiceRecognition(recognizer);
+  }
+};

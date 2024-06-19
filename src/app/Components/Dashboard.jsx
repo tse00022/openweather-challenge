@@ -5,7 +5,7 @@ import LoadingPrompt from "./LoadingPrompt";
 import MicrophonePrompt from "./MicrophonePrompt";
 import WeatherOverlay from "./WeatherOverlay";
 import { stopVoiceRecognition, resumeVoiceRecognition, startVoiceRecognition } from "../../utils/startVoiceRecognition";
-import * as fuzz from 'fuzzball';
+import { calculateSimilarity } from "../../utils/stringSimilarity";
 
 export default function Dashboard({ baseURL }) {
   const [weatherData, setWeatherData] = useState(null);
@@ -93,15 +93,12 @@ export default function Dashboard({ baseURL }) {
       recognition.interimResults = true;
 
       recognition.onresult = (event) => {
-        const transcript = Array.from(event.results)
-          .map((result) => result[0])
-          .map((result) => result.transcript)
-          .join('');
+        const transcript = event.results[event.results.length - 1][0].transcript
 
         setText(transcript);
 
-        if (event.results[0].isFinal) {
-          setVoiceStack((prevStack) => [...prevStack, transcript]);
+        if (event.results[event.results.length - 1].isFinal) {
+          setVoiceStack([transcript]);
         }
       };
 
@@ -119,25 +116,24 @@ export default function Dashboard({ baseURL }) {
     };
   }, [microphoneEnabled]);
 
-  // Start voice recognition after recognizer is set
-  // useEffect(() => {
-  //   if (recognizer) {
-  //     startVoiceRecognition(recognizer);
-  //   }
-  // }, [recognizer]);
-
   useEffect(() => {
-    console.log("voice stack updated", voiceStack);
     const voice = voiceStack.shift();
     matchVoiceCommand(voice);
   }, [voiceStack]);
 
   // Speak the given text using the Web Speech API
   const speak = (text) => {
-    stopVoiceRecognition(recognizer);
+    //stop voice recognition
+    const recognition = recognitionRef.current;
+    if (recognition) {
+      stopVoiceRecognition(recognition);
+    }
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.onend = () => {
-      resumeVoiceRecognition(recognizer);
+      // Resume voice recognition after speaking
+      if (recognition) {
+        resumeVoiceRecognition(recognition);
+      }
     };
     speechSynthesis.speak(utterance);
   };
@@ -159,31 +155,8 @@ export default function Dashboard({ baseURL }) {
       return;
     }
 
-    console.log("checkpoint 0.3 state check, background image:", backgroundImage);  
-    console.log("checkpoint 0.5 state check, microphoneEnabled:", microphoneEnabled);
-    console.log("checkpoint 0.7 weather data:", weatherData);
-
-    console.log("checkpoint 1 Voice command:", voice);
-    console.log("checkpoint 2 data:", weatherData);
-
     const commands = ["how's the weather"];
-    const threshold = 70;
-
-    // Calculate similarity between voice input and command
-    const calculateSimilarity = (voiceWords, commandWords) => {
-      let totalSimilarity = 0;
-      commandWords.forEach(commandWord => {
-        let maxSimilarity = 0;
-        voiceWords.forEach(voiceWord => {
-          const similarity = fuzz.ratio(voiceWord, commandWord);
-          if (similarity > maxSimilarity) {
-            maxSimilarity = similarity;
-          }
-        });
-        totalSimilarity += maxSimilarity;
-      });
-      return totalSimilarity / commandWords.length;
-    };
+    const threshold = 90;
 
     const voiceWords = voice.toLowerCase().split(' ');
     let bestMatch = null;

@@ -10,7 +10,7 @@ import { stopVoiceRecognition, resumeVoiceRecognition, startVoiceRecognition } f
 import * as fuzz from 'fuzzball';
 
 export default function Dashboard({ baseURL }) {
-  const [data, setData] = useState(null);
+  const [weatherData, setWeatherData] = useState(null);
   const [cityValid, setCityValid] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState(`url("./pics/01d.jpg")`);
   const [microphoneEnabled, setMicrophoneEnabled] = useState(false);
@@ -37,7 +37,7 @@ export default function Dashboard({ baseURL }) {
         }
         const actualData = await response.json();
         setCityValid(true);
-        setData(actualData);
+        setWeatherData(actualData);
         setBackgroundImage(`url("./pics/${actualData.list[0].weather[0].icon}.jpg")`);
       } catch (error) {
         console.error("Failed to fetch weather data:", error);
@@ -74,7 +74,6 @@ export default function Dashboard({ baseURL }) {
 
     fetchLocation();
     checkMicrophonePermission();
-    voiceLoop();
   }, []);
 
   // Fetch weather data every 30 minutes after location is confirmed
@@ -97,6 +96,7 @@ export default function Dashboard({ baseURL }) {
       recognizer.on("partialresult", (message) => {
         if (message.result.partial != prevPartialResult) {
           voiceStack.push(message.result.partial);
+          setVoiceStack([...voiceStack]);
           prevPartialResult = message.result.partial;
           setText(message.result.partial);
         }
@@ -115,6 +115,12 @@ export default function Dashboard({ baseURL }) {
       startVoiceRecognition(recognizer);
     }
   }, [recognizer]);
+
+  useEffect(() => {
+    console.log("voice stack updated", voiceStack);
+    const voice = voiceStack.shift();
+    matchVoiceCommand(voice);
+  }, [voiceStack]);
 
   // Speak the given text using the Web Speech API
   const speak = (text) => {
@@ -137,27 +143,18 @@ export default function Dashboard({ baseURL }) {
     return new Promise(r => setTimeout(r, ms));
   }
 
-  // Main loop for processing voice commands
-  const voiceLoop = async () => {
-    if (voiceStack.length === 0) {
-      await sleep(1000);
-      return voiceLoop();
-    }
-
-    const voice = voiceStack.shift();
-    matchVoiceCommand(voice);
-    await sleep(1000);
-    return voiceLoop();
-  };
-
   // Match the voice command to predefined commands and execute the corresponding action
   const matchVoiceCommand = async (voice) => {
     if (!voice) {
       return;
     }
 
+    console.log("checkpoint 0.3 state check, background image:", backgroundImage);  
+    console.log("checkpoint 0.5 state check, microphoneEnabled:", microphoneEnabled);
+    console.log("checkpoint 0.7 weather data:", weatherData);
+
     console.log("checkpoint 1 Voice command:", voice);
-    console.log("checkpoint 2 data:", data);
+    console.log("checkpoint 2 data:", weatherData);
 
     const commands = ["how's the weather"];
     const threshold = 70;
@@ -223,58 +220,58 @@ export default function Dashboard({ baseURL }) {
 
   return (
     <div>
-      {data && !microphoneEnabled && <MicrophonePrompt />}
-      {!data && <LoadingPrompt />}
+      {weatherData && !microphoneEnabled && <MicrophonePrompt />}
+      {!weatherData && <LoadingPrompt />}
       {downloadingModel && <DownloadingPrompt />}
-      {!downloadingModel && data && microphoneEnabled && (
+      {!downloadingModel && weatherData && microphoneEnabled && (
         <div className="flex flex-col pt-4 md:pt-0 justify-center bg-cover w-full min-h-screen" style={{ backgroundImage }}>
           <div className="align-middle mx-4 py-4 lg:mx-10 bg-gradient-to-r from-black to-[#0a2e3f73] rounded-2xl">
             <div className=" w-full pb-4 flex flex-wrap">
               <div className="pl-4 pt-4">
-                <div className="text-3xl font-bold">{data.city.name}</div>
-                <span className="pt-0 text-right text-sm font-bold text-lightgray">{formatDate(data.list[0].dt, data.city.timezone)}</span>
+                <div className="text-3xl font-bold">{weatherData.city.name}</div>
+                <span className="pt-0 text-right text-sm font-bold text-lightgray">{formatDate(weatherData.list[0].dt, weatherData.city.timezone)}</span>
                 <div>{text}</div>
               </div>
             </div>
             <div className="border-b-2 pb-8 flex flex-wrap">
               {!cityValid && <span>City {city} not found</span>}
               <div className="flex h-[8rem] w-1/2 flex-row sm:border-r-2">
-                <img src={`/icons/${data.list[0].weather[0].icon}.svg`} alt="weather icon" className="w-1/2" />
+                <img src={`/icons/${weatherData.list[0].weather[0].icon}.svg`} alt="weather icon" className="w-1/2" />
                 <div className="flex flex-col justify-center ml-5 md:ml-10">
-                  <span className="text-4xl font-bold">{data.list[0].main.temp.toFixed(1)}°</span>
-                  <span className="text-sm font-bold text-lightgray">{data.list[0].weather[0].description}</span>
+                  <span className="text-4xl font-bold">{weatherData.list[0].main.temp.toFixed(1)}°</span>
+                  <span className="text-sm font-bold text-lightgray">{weatherData.list[0].weather[0].description}</span>
                 </div>
               </div>
               <div className="h-[8rem] sm:w-1/2 flex-grow text-center flex flex-wrap w-min-content">
                 <div className="w-1/3 h-1/2 flex-grow text-center pt-4">
-                  <span className="text-2xl font-bold">{data.list[0].main.temp_max.toFixed(1)}</span>
+                  <span className="text-2xl font-bold">{weatherData.list[0].main.temp_max.toFixed(1)}</span>
                   <div className="text-sm font-bold text-lightgray">High</div>
                 </div>
                 <div className="w-1/3 h-1/2 flex-grow text-center pt-4">
-                  <span className="text-2xl font-bold">{data.list[0].wind.speed.toFixed()} km/h</span>
+                  <span className="text-2xl font-bold">{weatherData.list[0].wind.speed.toFixed()} km/h</span>
                   <div className="text-sm font-bold text-lightgray">Wind Speed</div>
                 </div>
                 <div className="w-1/3 h-1/2 flex-grow text-center pt-4">
-                  <span className="text-2xl font-bold">{formatTime(data.city.sunrise, data.city.timezone)}</span>
+                  <span className="text-2xl font-bold">{formatTime(weatherData.city.sunrise, weatherData.city.timezone)}</span>
                   <div className="text-sm font-bold text-lightgray">Sunrise</div>
                 </div>
                 <div className="w-1/3 h-1/2 flex-grow text-center pt-4">
-                  <span className="text-2xl font-bold">{data.list[0].main.temp_min.toFixed(1)}</span>
+                  <span className="text-2xl font-bold">{weatherData.list[0].main.temp_min.toFixed(1)}</span>
                   <div className="text-sm font-bold text-lightgray">Low</div>
                 </div>
                 <div className="w-1/3 h-1/2 flex-grow text-center pt-4">
-                  <span className="text-2xl font-bold">{data.list[0].main.humidity}%</span>
+                  <span className="text-2xl font-bold">{weatherData.list[0].main.humidity}%</span>
                   <div className="text-sm font-bold text-lightgray">Humidity</div>
                 </div>
                 <div className="w-1/3 h-1/2 flex-grow text-center pt-4">
-                  <span className="text-2xl font-bold">{formatTime(data.city.sunset, data.city.timezone)}</span>
+                  <span className="text-2xl font-bold">{formatTime(weatherData.city.sunset, weatherData.city.timezone)}</span>
                   <div className="text-sm font-bold text-lightgray">Sunset</div>
                 </div>
               </div>
             </div>
             <div className="pt-6 pl-4 text-2xl font-semibold">Five Days Forecast</div>
             <div className="grid grid-cols-1 sm:grid-cols-5 gap-1 w-full justify-center items-center h-auto pt-1 px-2.5">
-              {data.list.slice(7, 40).filter((_, index) => index % 8 === 0).map((item, index) => (
+              {weatherData.list.slice(7, 40).filter((_, index) => index % 8 === 0).map((item, index) => (
                 <div key={index} className="day-forecast pb-4 flex flex-col grow h-full text-center pt-8 border border-white-300">
                   <div className="flex flex-col grow h-full">
                     <span className="text-xl font-bold">{moment(new Date().setTime(item.dt * 1000)).format("ddd")}</span>

@@ -4,7 +4,6 @@ import moment from "moment";
 import LoadingPrompt from "./LoadingPrompt";
 import MicrophonePrompt from "./MicrophonePrompt";
 import WeatherOverlay from "./WeatherOverlay";
-import { stopVoiceRecognition, resumeVoiceRecognition, startVoiceRecognition } from "../../utils/startVoiceRecognition";
 import { calculateSimilarity } from "../../utils/stringSimilarity";
 
 export default function Dashboard({ baseURL }) {
@@ -102,7 +101,8 @@ export default function Dashboard({ baseURL }) {
         }
       };
 
-      startVoiceRecognition(recognition);
+      // start voice recognition
+      recognition.start();
     };
 
     if (microphoneEnabled) {
@@ -110,8 +110,10 @@ export default function Dashboard({ baseURL }) {
     }
 
     return () => {
-      if (recognitionRef.current) {
-        stopVoiceRecognition(recognitionRef.current);
+      // stop voice recognition
+      const recognition = recognitionRef.current; 
+      if (recognition) {
+        recognition.stop();
       }
     };
   }, [microphoneEnabled]);
@@ -126,13 +128,14 @@ export default function Dashboard({ baseURL }) {
     //stop voice recognition
     const recognition = recognitionRef.current;
     if (recognition) {
-      stopVoiceRecognition(recognition);
+      recognition.stop();
     }
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.onend = () => {
       // Resume voice recognition after speaking
+      const recognition = recognitionRef.current;
       if (recognition) {
-        resumeVoiceRecognition(recognition);
+        recognition.start();
       }
     };
     speechSynthesis.speak(utterance);

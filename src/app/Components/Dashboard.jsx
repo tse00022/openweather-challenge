@@ -17,6 +17,7 @@ export default function Dashboard({ baseURL }) {
   const [weatherUpdateInterval, setWeatherUpdateInterval] = useState(null);
   const [overlayIcon, setOverlayIcon] = useState(null);
   const [overlayText, setOverlayText] = useState("");
+  const [overlayTranscript, setOverlayTranscript] = useState("");
   const [voiceStack, setVoiceStack] = useState([]);
   const recognitionRef = useRef(null);
 
@@ -137,12 +138,14 @@ export default function Dashboard({ baseURL }) {
       if (recognition) {
         recognition.start();
       }
+      showOverlay("", null, "")
     };
     speechSynthesis.speak(utterance);
   };
 
   // Show an overlay with the given icon and text
-  const showOverlay = (icon, text) => {
+  const showOverlay = (transcript, icon, text) => {
+    setOverlayTranscript(transcript);
     setOverlayIcon(icon);
     setOverlayText(text);
   };
@@ -186,9 +189,9 @@ export default function Dashboard({ baseURL }) {
       const data = await weatherResponse.json();
 
       console.log("Matched command:", bestMatch, "with score:", bestScore, "for command:", voice);
-      const weatherInfo = `Today's temperature is from ${data.list[0].main.temp_min.toFixed(1)} to ${data.list[0].main.temp_max.toFixed(1)} Celsius, mainly ${data.list[0].weather[0].description}, Humidity is ${data.list[0].main.humidity}%.`;
-      speak(weatherInfo);
-      showOverlay(data.list[0].weather[0].icon, data.list[0].weather[0].description);
+      const weatherTranscript = `Today's temperature is from ${data.list[0].main.temp_min.toFixed(1)} to ${data.list[0].main.temp_max.toFixed(1)} Celsius, mainly ${data.list[0].weather[0].description}, Humidity is ${data.list[0].main.humidity}%.`;
+      speak(weatherTranscript);
+      showOverlay(weatherTranscript, data.list[0].weather[0].icon, data.list[0].weather[0].description);
     } else {
       console.log("No matching command found.");
     }
@@ -270,7 +273,7 @@ export default function Dashboard({ baseURL }) {
               ))}
             </div>
           </div>
-          <WeatherOverlay icon={overlayIcon} text={overlayText} />
+          <WeatherOverlay transcript={overlayTranscript} icon={overlayIcon} text={overlayText} />
         </div>
       )}
     </div>

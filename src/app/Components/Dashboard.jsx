@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import moment from "moment";
 import LoadingPrompt from "./LoadingPrompt";
 import MicrophonePrompt from "./MicrophonePrompt";
-import WeatherOverlay from "./WeatherOverlay";
+import InfoOverlay from "./InfoOverlay";
 import { calculateSimilarity } from "../../utils/stringSimilarity";
 
 export default function Dashboard({ baseURL }) {
@@ -112,7 +112,7 @@ export default function Dashboard({ baseURL }) {
 
     return () => {
       // stop voice recognition
-      const recognition = recognitionRef.current; 
+      const recognition = recognitionRef.current;
       if (recognition) {
         recognition.stop();
       }
@@ -273,7 +273,7 @@ export default function Dashboard({ baseURL }) {
               ))}
             </div>
           </div>
-          <WeatherOverlay transcript={overlayTranscript} icon={overlayIcon} text={overlayText} />
+          <InfoOverlay transcript={overlayTranscript} icon={overlayIcon} text={overlayText} />
         </div>
       )}
     </div>

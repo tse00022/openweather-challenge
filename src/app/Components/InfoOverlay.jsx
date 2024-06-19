@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 
-const WeatherOverlay = ({ icon, text, transcript }) => {
+const InfoOverlay = ({ icon, text, transcript }) => {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -25,4 +25,4 @@ const WeatherOverlay = ({ icon, text, transcript }) => {
   );
 };
 
-export default WeatherOverlay;
+export default InfoOverlay;

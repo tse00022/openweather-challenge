@@ -7,7 +7,6 @@ import DownloadingPrompt from "./DownloadingPrompt";
 import WeatherOverlay from "./WeatherOverlay";
 import { createModel, KaldiRecognizer } from "vosk-browser";
 import { stopVoiceRecognition, resumeVoiceRecognition, startVoiceRecognition } from "../../utils/startVoiceRecognition";
-
 import * as fuzz from 'fuzzball';
 
 export default function Dashboard({ baseURL }) {
@@ -26,6 +25,7 @@ export default function Dashboard({ baseURL }) {
   const [voiceStack, setVoiceStack] = useState([]);
   let prevPartialResult = "";
 
+  // Fetch weather data based on latitude and longitude
   const fetchWeatherData = async () => {
     if (latitude && longitude) {
       const url = `${baseURL}/api/weather?lat=${latitude}&lon=${longitude}`;
@@ -45,6 +45,7 @@ export default function Dashboard({ baseURL }) {
     }
   };
 
+  // Initial setup: check microphone permission and fetch location
   useEffect(() => {
     const checkMicrophonePermission = async () => {
       try {
@@ -59,7 +60,7 @@ export default function Dashboard({ baseURL }) {
 
     const fetchLocation = async () => {
       try {
-        // get location from ip
+        // Get location from IP
         const locationResponse = await fetch(`${baseURL}/api/location`);
         const location = await locationResponse.json();
         setLatitude(location.loc.split(",")[0]);
@@ -76,6 +77,7 @@ export default function Dashboard({ baseURL }) {
     voiceLoop();
   }, []);
 
+  // Fetch weather data every 30 minutes after location is confirmed
   useEffect(() => {
     if (latitude && longitude) {
       fetchWeatherData();
@@ -85,6 +87,7 @@ export default function Dashboard({ baseURL }) {
     }
   }, [latitude, longitude]);
 
+  // Voice recognition setup after microphone permission is granted
   useEffect(() => {
     const setupVoiceRecognition = async () => {
       setDownloadingModel(true);
@@ -106,12 +109,14 @@ export default function Dashboard({ baseURL }) {
     }
   }, [microphoneEnabled]);
 
+  // Start voice recognition after recognizer is set
   useEffect(() => {
     if (recognizer) {
       startVoiceRecognition(recognizer);
     }
   }, [recognizer]);
 
+  // Speak the given text using the Web Speech API
   const speak = (text) => {
     stopVoiceRecognition(recognizer);
     const utterance = new SpeechSynthesisUtterance(text);
@@ -121,16 +126,19 @@ export default function Dashboard({ baseURL }) {
     speechSynthesis.speak(utterance);
   };
 
+  // Show an overlay with the given icon and text
   const showOverlay = (icon, text) => {
     setOverlayIcon(icon);
     setOverlayText(text);
   };
 
-  function sleep(ms = 0) { return new Promise(r => setTimeout(r, ms)); }
+  // Sleep function to pause execution for a given number of milliseconds
+  function sleep(ms = 0) {
+    return new Promise(r => setTimeout(r, ms));
+  }
 
+  // Main loop for processing voice commands
   const voiceLoop = async () => {
-
-    // check for voiceStack
     if (voiceStack.length === 0) {
       await sleep(1000);
       return voiceLoop();
@@ -142,14 +150,19 @@ export default function Dashboard({ baseURL }) {
     return voiceLoop();
   };
 
+  // Match the voice command to predefined commands and execute the corresponding action
   const matchVoiceCommand = async (voice) => {
     if (!voice) {
       return;
     }
 
+    console.log("checkpoint 1 Voice command:", voice);
+    console.log("checkpoint 2 data:", data);
+
     const commands = ["how's the weather"];
     const threshold = 70;
 
+    // Calculate similarity between voice input and command
     const calculateSimilarity = (voiceWords, commandWords) => {
       let totalSimilarity = 0;
       commandWords.forEach(commandWord => {
@@ -179,17 +192,13 @@ export default function Dashboard({ baseURL }) {
     });
 
     if (bestMatch && bestScore > threshold) {
-      // clear voiceStack
       setVoiceStack([]);
 
-      // TODO: why i can't access the state variable here
-      // fetch the lat, long
       const locationResponse = await fetch(`${baseURL}/api/location`);
       const location = await locationResponse.json();
       const lat = location.loc.split(",")[0];
       const lon = location.loc.split(",")[1];
 
-      // fetch the weather data
       const weatherResponse = await fetch(`${baseURL}/api/weather?lat=${lat}&lon=${lon}`);
       const data = await weatherResponse.json();
 
@@ -202,10 +211,12 @@ export default function Dashboard({ baseURL }) {
     }
   };
 
+  // Format the date based on timestamp and timezone
   const formatDate = (timestamp, timezone) => {
     return moment.utc(new Date().setTime(timestamp * 1000)).add(timezone, "seconds").format("dddd, MMMM Do YYYY");
   };
 
+  // Format the time based on timestamp and timezone
   const formatTime = (timestamp, timezone) => {
     return moment.utc(timestamp, "X").add(timezone, "seconds").format("h:mm a");
   };

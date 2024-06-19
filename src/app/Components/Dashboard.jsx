@@ -1,11 +1,9 @@
 'use client'
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import moment from "moment";
 import LoadingPrompt from "./LoadingPrompt";
 import MicrophonePrompt from "./MicrophonePrompt";
-import DownloadingPrompt from "./DownloadingPrompt";
 import WeatherOverlay from "./WeatherOverlay";
-import { createModel, KaldiRecognizer } from "vosk-browser";
 import { stopVoiceRecognition, resumeVoiceRecognition, startVoiceRecognition } from "../../utils/startVoiceRecognition";
 import * as fuzz from 'fuzzball';
 
@@ -14,16 +12,14 @@ export default function Dashboard({ baseURL }) {
   const [cityValid, setCityValid] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState(`url("./pics/01d.jpg")`);
   const [microphoneEnabled, setMicrophoneEnabled] = useState(false);
-  const [recognizer, setRecognizer] = useState(null);
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
   const [text, setText] = useState("");
-  const [downloadingModel, setDownloadingModel] = useState(false);
   const [weatherUpdateInterval, setWeatherUpdateInterval] = useState(null);
   const [overlayIcon, setOverlayIcon] = useState(null);
   const [overlayText, setOverlayText] = useState("");
   const [voiceStack, setVoiceStack] = useState([]);
-  let prevPartialResult = "";
+  const recognitionRef = useRef(null);
 
   // Fetch weather data based on latitude and longitude
   const fetchWeatherData = async () => {
@@ -89,32 +85,46 @@ export default function Dashboard({ baseURL }) {
   // Voice recognition setup after microphone permission is granted
   useEffect(() => {
     const setupVoiceRecognition = async () => {
-      setDownloadingModel(true);
-      const model = await createModel("/models/vosk-model-small-en-us-0.15.tar.gz");
-      setDownloadingModel(false);
-      const recognizer = new model.KaldiRecognizer(16000);
-      recognizer.on("partialresult", (message) => {
-        if (message.result.partial != prevPartialResult) {
-          voiceStack.push(message.result.partial);
-          setVoiceStack([...voiceStack]);
-          prevPartialResult = message.result.partial;
-          setText(message.result.partial);
+      const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new Recognition();
+      recognitionRef.current = recognition;
+
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map((result) => result[0])
+          .map((result) => result.transcript)
+          .join('');
+
+        setText(transcript);
+
+        if (event.results[0].isFinal) {
+          setVoiceStack((prevStack) => [...prevStack, transcript]);
         }
-      });
-      setRecognizer(recognizer);
+      };
+
+      startVoiceRecognition(recognition);
     };
 
     if (microphoneEnabled) {
       setupVoiceRecognition();
     }
+
+    return () => {
+      if (recognitionRef.current) {
+        stopVoiceRecognition(recognitionRef.current);
+      }
+    };
   }, [microphoneEnabled]);
 
   // Start voice recognition after recognizer is set
-  useEffect(() => {
-    if (recognizer) {
-      startVoiceRecognition(recognizer);
-    }
-  }, [recognizer]);
+  // useEffect(() => {
+  //   if (recognizer) {
+  //     startVoiceRecognition(recognizer);
+  //   }
+  // }, [recognizer]);
 
   useEffect(() => {
     console.log("voice stack updated", voiceStack);
@@ -222,8 +232,7 @@ export default function Dashboard({ baseURL }) {
     <div>
       {weatherData && !microphoneEnabled && <MicrophonePrompt />}
       {!weatherData && <LoadingPrompt />}
-      {downloadingModel && <DownloadingPrompt />}
-      {!downloadingModel && weatherData && microphoneEnabled && (
+      {weatherData && microphoneEnabled && (
         <div className="flex flex-col pt-4 md:pt-0 justify-center bg-cover w-full min-h-screen" style={{ backgroundImage }}>
           <div className="align-middle mx-4 py-4 lg:mx-10 bg-gradient-to-r from-black to-[#0a2e3f73] rounded-2xl">
             <div className=" w-full pb-4 flex flex-wrap">

@@ -28,7 +28,7 @@ export default function Dashboard({ baseURL }) {
     }
     setTimeout(() => {
       showOverlay("", null, "")
-    }, 2000);
+    }, 3000);
     
   }, [microphoneEnabled, latitude, longitude, weatherData]);
 

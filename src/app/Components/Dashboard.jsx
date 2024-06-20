@@ -21,6 +21,17 @@ export default function Dashboard({ baseURL }) {
   const [voiceStack, setVoiceStack] = useState([]);
   const recognitionRef = useRef(null);
 
+  // Display notification that voice control is ready
+  useEffect(() => {
+    if (microphoneEnabled && latitude && longitude && weatherData) {
+      showOverlay("Say 'How's the weather' to get start", "voice-control", "voice control ready", )
+    }
+    setTimeout(() => {
+      showOverlay("", null, "")
+    }, 2000);
+    
+  }, [microphoneEnabled, latitude, longitude, weatherData]);
+
   // Fetch weather data based on latitude and longitude
   const fetchWeatherData = async () => {
     if (latitude && longitude) {
@@ -63,6 +74,7 @@ export default function Dashboard({ baseURL }) {
         setLongitude(location.loc.split(",")[1]);
       } catch (error) {
         console.error("Failed to fetch location data:", error);
+        // Set ottawa as default location
         setLatitude(43.7946);
         setLongitude(-79.2644);
       }

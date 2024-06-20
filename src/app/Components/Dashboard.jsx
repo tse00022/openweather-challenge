@@ -20,6 +20,7 @@ export default function Dashboard({ baseURL }) {
   const [overlayTranscript, setOverlayTranscript] = useState("");
   const [voiceStack, setVoiceStack] = useState([]);
   const [videoLoaded, setVideoLoaded] = useState(false); // Track video loading
+  const [videoSrc, setVideoSrc] = useState("/videos/01d.mp4"); // Update with your video path
   const videoRef = useRef(null);
   const recognitionRef = useRef(null);
 
@@ -38,7 +39,6 @@ export default function Dashboard({ baseURL }) {
     };
     
     if (videoRef.current) {
-      console.log("checkpoint 1 ", videoRef.current)
       videoRef.current.addEventListener("loadeddata", handleLoadedData);
     }
 
@@ -63,6 +63,7 @@ export default function Dashboard({ baseURL }) {
         setCityValid(true);
         setWeatherData(actualData);
         setBackgroundImage(`url("./pics/${actualData.list[0].weather[0].icon}.jpg")`);
+        setVideoSrc(`/videos/${actualData.list[0].weather[0].icon}.mp4`);
       } catch (error) {
         console.error("Failed to fetch weather data:", error);
       }
@@ -245,7 +246,7 @@ export default function Dashboard({ baseURL }) {
           {/* Background Video */}
           <video
             ref={videoRef}
-            src="/videos/01d.mp4" // Update with your video path
+            src={videoSrc} // Update with your video path
             autoPlay
             muted
             loop

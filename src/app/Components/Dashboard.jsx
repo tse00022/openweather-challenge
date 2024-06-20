@@ -260,9 +260,9 @@ export default function Dashboard({ baseURL }) {
                 <div>{text}</div>
               </div>
             </div>
-            <div className="border-b-2 pb-8 flex flex-wrap">
+            <div className="pb-8 flex flex-wrap">
               {!cityValid && <span>City {city} not found</span>}
-              <div className="flex h-[8rem] w-1/2 flex-row sm:border-r-2">
+              <div className="flex h-[8rem] w-1/2 flex-row ">
                 <img src={`/icons/${weatherData.list[0].weather[0].icon}.svg`} alt="weather icon" className="w-1/2" />
                 <div className="flex flex-col justify-center ml-5 md:ml-10">
                   <span className="text-4xl font-bold">{weatherData.list[0].main.temp.toFixed(1)}°</span>
@@ -299,7 +299,7 @@ export default function Dashboard({ baseURL }) {
             <div className="pt-6 pl-4 text-2xl font-semibold">Five Days Forecast</div>
             <div className="grid grid-cols-1 sm:grid-cols-5 gap-1 w-full justify-center items-center h-auto pt-1 px-2.5">
               {weatherData.list.slice(7, 40).filter((_, index) => index % 8 === 0).map((item, index) => (
-                <div key={index} className="day-forecast pb-4 flex flex-col grow h-full text-center pt-8 border border-white-300">
+                <div key={index} className="day-forecast pb-4 flex flex-col grow h-full text-center pt-8 border border-white-300 rounded-xl">
                   <div className="flex flex-col grow h-full">
                     <span className="text-xl font-bold">{moment(new Date().setTime(item.dt * 1000)).format("ddd")}</span>
                     <div className="flex justify-center"><img src={`/icons/${item.weather[0].icon}.svg`} alt="weather icon" className="w-20" /></div>

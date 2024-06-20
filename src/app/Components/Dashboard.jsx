@@ -19,9 +19,12 @@ export default function Dashboard({ baseURL }) {
   const [overlayText, setOverlayText] = useState("");
   const [overlayTranscript, setOverlayTranscript] = useState("");
   const [voiceStack, setVoiceStack] = useState([]);
+  const [videoLoaded, setVideoLoaded] = useState(false); // Track video loading
+  const videoRef = useRef(null);
   const recognitionRef = useRef(null);
 
   // Display notification that voice control is ready
+  // Also cache dynamic video loading
   useEffect(() => {
     if (microphoneEnabled && latitude && longitude && weatherData) {
       showOverlay("Say 'How's the weather' to get start", "voice-control", "voice control ready", )
@@ -29,7 +32,21 @@ export default function Dashboard({ baseURL }) {
     setTimeout(() => {
       showOverlay("", null, "")
     }, 3000);
+
+    const handleLoadedData = () => {
+      setVideoLoaded(true);
+    };
     
+    if (videoRef.current) {
+      console.log("checkpoint 1 ", videoRef.current)
+      videoRef.current.addEventListener("loadeddata", handleLoadedData);
+    }
+
+    return () => {
+      if (videoRef.current) {
+        videoRef.current.removeEventListener("loadeddata", handleLoadedData);
+      }
+    }
   }, [microphoneEnabled, latitude, longitude, weatherData]);
 
   // Fetch weather data based on latitude and longitude
@@ -224,8 +241,17 @@ export default function Dashboard({ baseURL }) {
       {weatherData && !microphoneEnabled && <MicrophonePrompt />}
       {!weatherData && <LoadingPrompt />}
       {weatherData && microphoneEnabled && (
-        <div className="flex flex-col pt-4 md:pt-0 justify-center bg-cover w-full min-h-screen" style={{ backgroundImage }}>
-          <div className="align-middle mx-4 py-4 lg:mx-10 bg-gradient-to-r from-black to-[#0a2e3f73] rounded-2xl">
+        <div className="flex flex-col pt-4 sm:pt-0 justify-center bg-cover w-full h-full sm:min-h-screen" style={{ backgroundImage: !videoLoaded ? backgroundImage : 'none' }}>
+          {/* Background Video */}
+          <video
+            ref={videoRef}
+            src="/videos/01d.mp4" // Update with your video path
+            autoPlay
+            muted
+            loop
+            className={`z-0 object-cover absolute top-0 right-0 bottom-0 left-0 object-cover w-full h-full min-h-fit transition-opacity duration-500 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
+          />
+          <div className="z-20 align-middle mx-4 py-4 lg:mx-10 bg-gradient-to-r from-black to-[#0a2e3f73] rounded-2xl">
             <div className=" w-full pb-4 flex flex-wrap">
               <div className="pl-4 pt-4">
                 <div className="text-3xl font-bold">{weatherData.city.name}</div>
